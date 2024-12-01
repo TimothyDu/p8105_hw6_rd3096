@@ -13,6 +13,7 @@ library(modelr)
 library(mgcv)
 library(broom)
 
+
 set.seed(1)
 
 
@@ -36,6 +37,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ```
 
 ## problem 1
+
 we need to download the dataset using the code chunk below
 ```{r}
 weather_df = 
@@ -58,7 +60,7 @@ Next, we will perform bootstrap sampling and regression analysis.
 First, we need to write a function to create the two quantities that we are interested.
 ```{r}
 compute_metrics = function(weather_sample) {
-  model = lm(tmax ~ tmin, weather_sample)
+  model = lm(tmax ~ tmin, data = weather_sample)
   r_squared = glance(model)$r.squared
   coefficients = tidy(model)
   intercept = coefficients %>% 
@@ -78,3 +80,62 @@ compute_metrics = function(weather_sample) {
 }
 ```
 
+we will perform bootstramp using the map function
+```{r}
+bootstrap_results = 
+  weather_df %>%
+  modelr::bootstrap (n = 5000) %>% 
+  mutate(
+    strap = map(strap, as_tibble),
+    results = map(strap, compute_metrics)
+    ) %>%
+  unnest(results)
+```
+
+Final step, we will summarize the results and visualize using ggplot
+```{r}
+bootstrap_summary =
+  bootstrap_results %>%
+  summarise(
+    mean_r_squared = mean(r_squared),
+    sd_r_squared = sd(r_squared),
+    mean_log_beta_product = mean(log_beta_product),
+    sd_log_beta_product = sd(log_beta_product)
+  )
+
+
+bootstrap_results %>%
+  pivot_longer(
+    cols = c(r_squared, log_beta_product), 
+    names_to = "metric", 
+    values_to = "value"
+    ) %>%
+  ggplot(aes(x = value)) +
+  geom_density(fill = "blue", alpha = 0.7) +
+  facet_wrap(. ~ metric, scales = "free") +
+  theme_minimal() +
+  labs(
+    title = "Bootstrap Distributions of r^2 and log(beta0 * beta1)",
+    x = "Value",
+    y = "Frequency"
+  )
+```
+1. Distribution of log(beta_0*beta_1)
+
+* The plot on the left represents the bootstrap distribution of this log_product, where beta_0 is the intercept and beta_1 is the slope.
+
+* Shape: The distribution is approximately symmetric and bell-shaped, indicating that the log-transformed product of the intercept and slope is fairly stable across the bootstrap samples.
+
+* Range: The values are centered around 2.0, with a slight spread from approximately 1.95 to 2.10.
+
+* Interpretation: The logarithm of the product of the intercept and slope is consistent and suggests a central tendency (average value) close to 2.0.
+
+2. Distribution of r_square
+
+* The plot on the right represents the bootstrap distribution of r_square, the proportion of variance in tmax explained by tmin.
+
+* Shape: This distribution is also symmetric and bell-shaped, showing that the r_square values are consistently estimated across bootstrap samples.
+
+* Range: The values are tightly centered around 0.91, with a slight spread from approximately 0.88 to 0.94.
+
+* Interpretation: The r_square values indicate a strong linear relationship between tmin and tmax, with most bootstrap samples confirming a high proportion of variance explained.
