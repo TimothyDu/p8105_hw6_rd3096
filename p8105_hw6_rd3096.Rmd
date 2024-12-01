@@ -139,3 +139,18 @@ bootstrap_results %>%
 * Range: The values are tightly centered around 0.91, with a slight spread from approximately 0.88 to 0.94.
 
 * Interpretation: The r_square values indicate a strong linear relationship between tmin and tmax, with most bootstrap samples confirming a high proportion of variance explained.
+
+we will construct the 95% CI
+
+```{r}
+bootstrap_conf_intervals =
+  bootstrap_results %>%
+  summarise(
+    r_squared_lower = quantile(r_squared, 0.025),
+    r_squared_upper = quantile(r_squared, 0.975),
+    log_beta_product_lower = quantile(log_beta_product, 0.025),
+    log_beta_product_upper = quantile(log_beta_product, 0.975)
+  )
+bootstrap_conf_intervals
+```
+
