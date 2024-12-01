@@ -286,7 +286,6 @@ city_results =
     plot.title = element_text(hjust = 0.5, size = 14) 
   )
 ```
-`r "**_Comments on the Plot_**"`
 
 1. General Trend: Most cities have ORs below 1, indicating male victims are less likely to have their homicides solved compared to female victims. A few cities, like New York, NY, show ORs near or above 1, suggesting no disparity or a slight advantage for male victims.
 
