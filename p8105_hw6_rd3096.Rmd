@@ -286,7 +286,7 @@ city_results =
     plot.title = element_text(hjust = 0.5, size = 14) 
   )
 ```
-**Comments on the Plot**
+`r "**_Comments on the Plot_**"`
 
 1. General Trend: Most cities have ORs below 1, indicating male victims are less likely to have their homicides solved compared to female victims. A few cities, like New York, NY, show ORs near or above 1, suggesting no disparity or a slight advantage for male victims.
 
@@ -297,4 +297,42 @@ city_results =
 4. Conclusion: The plot highlights disparities across cities, warranting further investigation into the factors influencing these differences.
 
 ## problem 3
+we will Load the dataset
+```{r}
+birth_data = read_csv ("./birthweight.csv", na = c("NA","",".")) %>% 
+  mutate(
+    babysex = factor(babysex, levels = c(1, 2), labels = c("Male", "Female")),
+    malform = factor(malform, levels = c(0, 1), labels = c("Absent", "Present")),
+    frace = factor(frace, levels = c(1, 2, 3, 4, 8, 9), labels = c("White", "Black", "Asian", "Puerto Rican", "Other", "Unknown")),
+    mrace = factor(mrace, levels = c(1, 2, 3, 4, 8), labels = c("White", "Black", "Asian", "Puerto Rican", "Other"))
+  )
+```
+
+we will fit a linear model
+```{r}
+
+birthweight_model = lm(
+  bwt ~ gaweeks + ppbmi + wtgain + malform,
+  data = birth_data
+) 
+ 
+birthweight_model %>% tidy
+
+birthweight_plot_data =
+  birth_data %>%
+  add_predictions(birthweight_model, var = "fitted_values") %>%
+  add_residuals(birthweight_model, var = "residuals") 
+
+  ggplot(birthweight_plot_data, aes(x = fitted_values, y = residuals)) +
+  geom_point(alpha = 0.5, color = "black") +  
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") + 
+  labs(
+    title = "Residuals vs Fitted Values",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal()
+
+```
+
 
