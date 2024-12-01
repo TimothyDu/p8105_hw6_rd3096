@@ -53,6 +53,10 @@ weather_df =
   select(name, id, everything())
 
 str(weather_df)
+
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point() 
 ```
 
 Next, we will perform bootstrap sampling and regression analysis.
@@ -152,5 +156,24 @@ bootstrap_conf_intervals =
     log_beta_product_upper = quantile(log_beta_product, 0.975)
   )
 bootstrap_conf_intervals
+```
+Based on the output, we know that the 95% confidence interval for r^2 is between 0.894 and 0.927, the  95% confidence interval for log_beta_product is between 1.97 and 2.06.
+## problem 2
+
+first, we will read and clean the dataset
+```{r}
+homicide_data = read_csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/refs/heads/master/homicide-data.csv", na = c("NA","","."))
+
+homicide_clean = 
+  homicide_data %>%
+  mutate(
+    city_state = str_c(city, state, sep = ", "),
+         solved = if_else(disposition == "Closed by arrest", 1, 0)) %>% 
+  select(city_state,everything()) %>% 
+  filter(!city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL")) %>%
+  filter(victim_race %in% c("White", "Black")) %>%
+  mutate(victim_age = as.numeric(victim_age)) %>% 
+  na.omit()
+
 ```
 
